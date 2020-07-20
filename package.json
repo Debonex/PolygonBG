@@ -1,0 +1,28 @@
+{
+    "name": "polygonbg",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "webpack-dev-server --open"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Debonex/PolygonBG.git"
+    },
+    "keywords": [
+        "svg"
+    ],
+    "author": "Debonex <debonexx@gmail.com>",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/Debonex/PolygonBG/issues"
+    },
+    "homepage": "https://github.com/Debonex/PolygonBG#readme",
+    "devDependencies": {
+        "html-webpack-plugin": "^4.3.0",
+        "webpack": "^4.43.0",
+        "webpack-cli": "^3.3.12",
+        "webpack-dev-server": "^3.11.0"
+    }
+}
