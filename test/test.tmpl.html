@@ -14,19 +14,22 @@
     </div>
     <!-- Write test script here. -->
     <script>
-        window.onload = function () {
+        window.onload = function() {
             var option = {
+                width: 600,
+                height: 600,
                 layout: {
-                    type: 'square',
-                    size: 50
+                    type: 'triangle',
+                    size: 60,
+                    jitter: 0.5
                 },
                 color: {
                     type: 'liner',
-                    directionX: 1,
+                    directionX: -1,
                     directionY: 1,
                     start: '#ffffe5',
                     end: '#004529',
-                    mode: 'lab'
+                    mode: 'hsl'
                 }
             }
             let svg = polybg(option).generateSVG()
