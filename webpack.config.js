@@ -20,5 +20,21 @@ module.exports = {
             title: 'polygon background test page',
             template: __dirname + '/test/test.tmpl.html'
         })
-    ]
+    ],
+    module: {
+        rules: [
+            {
+                test: /\.css$/,
+                use: [
+                    { loader: 'style-loader' },
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            modules: true
+                        }
+                    }
+                ]
+            }
+        ]
+    },
 }

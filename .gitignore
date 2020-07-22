@@ -1,2 +1,6 @@
+# vscode
+.vscode
+* copy.*
+
+# npm
 node_modules
-dist

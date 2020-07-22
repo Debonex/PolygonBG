@@ -1,12 +1,13 @@
 /**
  * @author Debonex
  * @fileoverview Entry for PolyBG 
+ * @date 2020年7月22日16:12:05
  */
 
 import Poly from './Poly'
+import './css/poly.css'
 
 const defaultOption = {
-    id: undefined,
     width: 400,
     height: 400,
     color: {
@@ -15,7 +16,9 @@ const defaultOption = {
     layout: {
         type: 'triangle'
     },
-    seed: undefined
+    hover:{
+        color: 'trans'
+    }
 }
 
 const optionKeys = Object.keys(defaultOption)
@@ -33,7 +36,6 @@ export default function polybg(opts = {}) {
     if (!(option.width > 0) || !(option.height > 0)) {
         throw TypeError('Invalid width or height.')
     }
-    option.seed = option.seed || Math.random()
     //#endregion
 
     return new Poly(option)

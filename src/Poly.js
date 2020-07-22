@@ -1,147 +1,97 @@
 /**
  * @author Debonex
  * @fileoverview core data structure for PolyBG, generate svg
+ * @date 2020年7月22日16:11:51
  */
-import Delaunator from 'delaunator'
+
 import * as domUtils from './utils/dom-utils'
 import * as colorUtils from './utils/color-utils'
-import * as randomUtils from './utils/random-utils'
+import {generatePaths} from './paths'
 
 export default class Poly {
 
-    _init_color(option) {
-        let color = this.OPTION.color
-        let colorType = this.OPTION.color.type || 'liner'
-        if (colorType == 'liner') {
+    /**
+     * Create a Poly object. Poly object contains children for generating a svg.
+     * 1. generate paths. only with attribute 'd'.
+     * 2. add attribute 'fill' to children.
+     * 3. add some attributes, which will affect interactive appearance of paths. (./css/poly.css).
+     * @param {*} option 
+     */
+    constructor(option) {
+        Poly.polyCode += 1
+        this.option = option
+        this.children = []
+        this.id = '_poly_' + Poly.polyCode
+        generatePaths(option, this.children)
+        generateFills(option, this.children)
+        generateHovers(option, this.children)
+    }
+
+    /**
+     * Generate a svg (dom element)
+     */
+    generateSVG() {
+        let svg = domUtils.makeNode('svg', {
+            xmlns: 'http://www.w3.org/2000/svg',
+            height: this.option.height,
+            width: this.option.width,
+            id: this.id
+        }, this.children)
+        return svg
+    }
+}
+Poly.polyCode = 0
+
+const generateFills = function (option, children) {
+    let color = option.color
+    let colorType = color.type || 'liner'
+    let scale = color.scale || ['white', 'black']
+    if (scale.length == 1) scale.push('gray')
+    let mode = color.mode || 'hsl'
+    let width = option.width
+    let height = option.height
+
+    let colorFunc
+    if (colorType == 'liner') {
+        colorFunc = function (xRate, yRate) {
             let directionX = color.directionX !== undefined ? color.directionX : 1
             let directionY = color.directionY !== undefined ? color.directionY : 0
             directionX = directionX > 0 ? 1 : (directionX == 0 ? 0 : -1)
             directionY = directionY > 0 ? 1 : (directionY == 0 ? 0 : -1)
             if (directionX == 0 && directionY == 0) directionX = directionY = 1
-            let start = color.start || 'white'
-            let end = color.end || 'black'
-            let mode = color.mode || 'hsl'
-            return colorUtils.xyMix(start, end,
-                option.xRate * directionX,
-                option.yRate * directionY, mode)
-        } else if (colorType == 'circle') {
-            let start = color.start || 'white'
-            let end = color.end || 'black'
-            let mode = color.mode || 'hsl'
-            let r = Math.sqrt(Math.pow(option.xRate - 0.5, 2) + Math.pow(option.yRate - 0.5, 2))
-            return colorUtils.rateTransition(start, end, r / Math.sqrt(2), mode)
+            return colorUtils.xyMix(scale,
+                xRate * directionX,
+                yRate * directionY, mode)
+        }
+    }
+    else if (colorType == 'circle') {
+        colorFunc = function (xRate, yRate) {
+            let r = Math.sqrt(Math.pow(xRate - 0.5, 2) + Math.pow(yRate - 0.5, 2))
+            return colorUtils.rateTransition(scale, r / Math.sqrt(2), mode)
         }
     }
 
-    //#region square
-    _init_square() {
-            let size = this.OPTION.layout.size || 20
-            let width = this.OPTION.width
-            let height = this.OPTION.height
-            let jRate = this.OPTION.layout.jitter || 0
-            let rt, rb = [],
-                lb = []
-            let r = b => randomUtils.plainRndom(b, jRate, size)
-            let l = (s, x, y) => [s, x, y].join(' ')
-            let str
-            for (let i = 0, y = 0; y < width + size; i++) {
-                for (let j = 0, x = 0; x < height + size; j++) {
-                    y = size * i
-                    x = size * j
-                    let d = ''
-                    d += (j == 0 ?
-                        (i == 0 ? l('M', r(x), r(y)) : l('M', lb[j][0], lb[j][1])) :
-                        (l('M', rt[0], rt[1])))
-                    rt = (i == 0 ? [r(x + size), r(y)] : [...rb[j]])
-                    d += l('L', rt[0], rt[1])
-                    rb[j] = [r(x + size), r(y + size)]
-                    d += l('L', rb[j][0], rb[j][1])
-                    lb[j] = (j == 0 ? [r(x), r(y + size)] : [...rb[j - 1]])
-                    d += l('L', lb[j][0], lb[j][1])
-                    d += 'Z'
-                    let color = this._init_color({
-                        xRate: (x + size / 2) / this.OPTION.width,
-                        yRate: (y + size / 2) / this.OPTION.height
-                    })
-                    this._children.push(domUtils.makeNode('path', {
-                        d: d,
-                        fill: color
-                    }))
-                }
-            }
-        }
-        //#endregion
-
-    //#region triangle
-    _init_triangle() {
-        let points = this._points_triangle()
-        let triangles = Delaunator.from(points).triangles
-        for (let i = 0; i < triangles.length; i += 3) {
-            let d = ''
-            let triangle = []
-            triangles.slice(i, i + 3).map(idx => triangle.push([points[idx][0], points[idx][1]]))
-            d += 'M' + triangle[0][0] + ' ' + triangle[0][1]
-            d += 'L' + triangle[1][0] + ' ' + triangle[1][1]
-            d += 'L' + triangle[2][0] + ' ' + triangle[2][1]
-            d += 'Z'
-
-            let centoidX = 0
-            let centoidY = 0
-            triangle.forEach(p => {
-                centoidX += p[0]
-                centoidY += p[1]
-            })
-            centoidX /= 3
-            centoidY /= 3
-            if (centoidX < 0) centoidX = 0.001
-            if (centoidY < 0) centoidY = 0.001
-            console.log(centoidX, centoidY)
-            let color = this._init_color({
-                xRate: centoidX / this.OPTION.width,
-                yRate: centoidY / this.OPTION.height
-            })
-            this._children.push(domUtils.makeNode('path', {
-                d: d,
-                fill: color
-            }))
-        }
+    for (let i = 0; i < children.length; i++) {
+        let centoid = domUtils.computeCentoidByd(children[i])
+        if (centoid[0] < 0) centoid[0] = 0.001
+        if (centoid[1] < 0) centoid[1] = 0.001
+        let [xRate, yRate] = [centoid[0] / width, centoid[1] / height]
+        children[i].setAttribute('fill', colorFunc(xRate, yRate))
     }
+}
 
-    _points_triangle() {
-            let size = this.OPTION.layout.size || 20
-            let width = this.OPTION.width
-            let height = this.OPTION.height
-            let points = []
-            let jRate = this.OPTION.layout.jitter || 0
-            for (let x = 0; x < width + 2 * size; x += size) {
-                for (let y = 0; y < height + 2 * size; y += size) {
-                    points.push([randomUtils.plainRndom(x, jRate, size), randomUtils.plainRndom(y, jRate, size)])
-                }
-            }
-            return points
-        }
-        //#endregion
-
-    constructor(option) {
-        this.OPTION = option
-
-        this._children = []
-        switch (option.layout.type) {
-            case 'triangle':
-                this._init_triangle()
-                break
-            case 'square':
-                this._init_square()
-                break
-        }
+const generateHovers = function (option, children) {
+    let hover = option.hover
+    let hoverFillFunc;
+    if(hover.color == 'trans'){
+        hoverFillFunc = c => colorUtils.colorContract(c.getAttribute('fill'))
+    }else{
+        let hoverFillHex = colorUtils.color(hover.color)
+        hoverFillFunc = () => hoverFillHex
     }
-
-    generateSVG() {
-        return domUtils.makeNode('svg', {
-            xmlns: 'http://www.w3.org/2000/svg',
-            height: this.OPTION.height,
-            width: this.OPTION.width
-        }, this._children, this.OPTION.id)
+    for (let i = 0; i < children.length; i++) {
+        let hoverFill = hoverFillFunc(children[i])
+        children[i].style.setProperty('--hoverfill', hoverFill)
+        children[i].setAttribute('hover', 'true')
     }
-
 }
