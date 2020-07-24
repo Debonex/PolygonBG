@@ -16,7 +16,7 @@ export const generatePaths = function (option, children) {
     let height = option.height
     let jRate = option.layout.jitter || 0
 
-    let l = (s, x, y) => [s, x, y].join(' ')
+    let l = (...args) => args.join(' ')
     if (type == 'square') {
         let rt, rb = [],
             lb = []
@@ -60,4 +60,6 @@ export const generatePaths = function (option, children) {
             children.push(domUtils.makeNode('path', { d: d }))
         }
     }
+
+
 }

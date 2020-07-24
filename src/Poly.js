@@ -25,6 +25,8 @@ export default class Poly {
         generatePaths(option, this.children)
         generateFills(option, this.children)
         generateHovers(option, this.children)
+
+        this.generateSVG.bind(this)
     }
 
     /**

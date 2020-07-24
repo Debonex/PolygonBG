@@ -1,12 +1,36 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Document</title><style>html,body{
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Document</title><style>html,
+        body {
             height: 100%;
         }
-        .container-main{
+
+        .container-main {
             height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
-        }</style></head><body><div class="container-main"><div id="container-1"></div></div><script>window.onload = function() {
+        }
+
+        #control {
+            position: absolute;
+            left: 0;
+            width: 20vw;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 5rem 2rem;
+        }
+
+        #submit {
+            height: 3rem;
+            width: 8rem;
+        }</style></head><body><div class="container-main"><div id="control"><button id="submit">Submit</button> <textarea name="option" id="option" cols="35" rows="100"></textarea></div><div id="container-1"></div></div><script>function update(option) {
+            let container = document.getElementById('container-1')
+            let svg = polybg(option).generateSVG()
+            console.log(svg)
+            if (container.children.length > 0) container.replaceChild(svg, container.children[0])
+            else container.appendChild(svg)
+        }
+        window.onload = function () {
             var option = {
                 width: 600,
                 height: 600,
@@ -19,14 +43,17 @@
                     type: 'liner',
                     directionX: -1,
                     directionY: 1,
-                    scale: ['#ffffe5','#004529'],
+                    scale: ['#ffffe5', '#004529'],
                     mode: 'hsl'
                 },
-                hover:{
+                hover: {
                     color: 'trans'
                 }
             }
-            let svg = polybg(option).generateSVG()
-            console.log(svg)
-            document.getElementById('container-1').appendChild(svg)
+            update(option)
+            document.getElementById('option').innerText = JSON.stringify(option)
+            document.getElementById('submit').onclick = function () {
+                let option = JSON.parse(document.getElementById('option').value)
+                update(option)
+            }
         }</script><script src="polypg.min.js"></script></body></html>
